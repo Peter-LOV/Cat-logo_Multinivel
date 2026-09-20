@@ -35,6 +35,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const logout = () => {
     setIsAuthenticated(false);
     setUserEmail(null); // Limpiamos el correo al salir
+    localStorage.removeItem('token');
   };
 
   return (

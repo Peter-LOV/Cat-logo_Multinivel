@@ -1,24 +1,51 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { API_ENDPOINTS } from '../config/api';
 
 const Login = () => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
 
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError('');
+    setLoading(true);
 
-    if (email === 'admin@upse.edu.ec' && password === '123456') {
-      setError('');
-      login(email);
+    try {
+      const response = await fetch(API_ENDPOINTS.login, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Backend responde 401 con { error: "Credenciales incorrectas" }
+        setError(data.error || 'Credenciales incorrectas');
+        return;
+      }
+
+      // Login exitoso: { token: "...", email: "..." }
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+      }
+
+      login(data.email || email);
       navigate('/');
-    } else {
-      setError('Credenciales incorrectas. Usa admin@upse.edu.ec / 123456');
+    } catch (err) {
+      console.error('Error al conectar con el backend:', err);
+      setError('No se pudo conectar con el servidor. Verifica que el backend esté corriendo en el puerto 3000.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -46,6 +73,7 @@ const Login = () => {
               className="w-full px-3 md:px-4 py-2 md:py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 outline-none transition text-sm md:text-base"
               placeholder="admin@upse.edu.ec"
               required
+              disabled={loading}
             />
           </div>
           <div>
@@ -57,13 +85,15 @@ const Login = () => {
               className="w-full px-3 md:px-4 py-2 md:py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 outline-none transition text-sm md:text-base"
               placeholder="••••••"
               required
+              disabled={loading}
             />
           </div>
           <button
             type="submit"
-            className="w-full bg-indigo-600 text-white font-bold py-2 md:py-3 rounded-lg hover:bg-indigo-700 transition text-sm md:text-base"
+            disabled={loading}
+            className="w-full bg-indigo-600 text-white font-bold py-2 md:py-3 rounded-lg hover:bg-indigo-700 transition text-sm md:text-base disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            Iniciar Sesión
+            {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
           </button>
         </form>
       </div>
