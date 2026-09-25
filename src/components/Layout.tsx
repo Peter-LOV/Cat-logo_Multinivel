@@ -4,7 +4,7 @@ import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
 
 const Layout = () => {
-  const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
+  const [isCollapsed] = useState<boolean>(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
 
   const handleToggleSidebar = () => {

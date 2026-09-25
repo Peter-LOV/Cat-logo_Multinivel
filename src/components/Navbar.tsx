@@ -1,3 +1,4 @@
+// src/components/Navbar.tsx
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
@@ -10,7 +11,7 @@ interface NavbarProps {
 
 const Navbar = ({ onToggleSidebar }: NavbarProps) => {
   const { totalItems } = useCart();
-  const { logout, userEmail } = useAuth();
+  const { logout, user } = useAuth();
   const navigate = useNavigate();
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
@@ -31,15 +32,16 @@ const Navbar = ({ onToggleSidebar }: NavbarProps) => {
           onClick={onToggleSidebar}
           className="p-2 rounded hover:bg-slate-100 transition text-slate-600 flex-shrink-0 md:hidden"
           title="Contraer / Expandir menú"
+          aria-label="Alternar menú"
         >
           <MdMenu size={24} />
         </button>
         <h2 className="text-slate-600 font-medium text-base md:text-lg truncate">
-          Panel de Administración
+          {user?.rol === "admin" ? "Panel de Administración" : "Tienda MultiCatálogo"}
         </h2>
       </div>
 
-      <div className="flex items-end gap-3 md:gap-6 flex-shrink-0">
+      <div className="flex items-center gap-3 md:gap-6 flex-shrink-0">
         <Link
           to="/carrito"
           className="relative p-2 hover:bg-slate-100 rounded-full transition"
@@ -55,10 +57,21 @@ const Navbar = ({ onToggleSidebar }: NavbarProps) => {
 
         <div className="flex items-center gap-2 md:gap-4">
           <span className="text-xs md:text-sm text-slate-500 hidden sm:inline truncate max-w-[100px] md:max-w-full">
-            {userEmail}
+            {user?.email}
           </span>
 
-          {/* Perfil con menú funcional en móvil y desktop */}
+          {/* Badge de rol */}
+          <span
+            className={`hidden md:inline-block text-xs font-semibold px-2 py-1 rounded-full uppercase ${
+              user?.rol === "admin"
+                ? "bg-amber-100 text-amber-700"
+                : "bg-indigo-100 text-indigo-700"
+            }`}
+          >
+            {user?.rol}
+          </span>
+
+          {/* Perfil con menú */}
           <div className="relative flex-shrink-0">
             <button
               onClick={toggleProfileMenu}
@@ -72,12 +85,12 @@ const Navbar = ({ onToggleSidebar }: NavbarProps) => {
               />
             </button>
 
-            {/* Menú desplegable - visible cuando isProfileMenuOpen = true */}
             {isProfileMenuOpen && (
               <div className="absolute right-0 top-full mt-2 w-40 bg-white border border-slate-200 rounded-lg shadow-lg z-50">
                 <div className="px-4 py-3 border-b border-slate-100">
                   <p className="text-xs text-slate-500 uppercase font-semibold">Cuenta</p>
-                  <p className="text-sm text-slate-700 truncate">{userEmail}</p>
+                  <p className="text-sm text-slate-700 truncate">{user?.email}</p>
+                  <p className="text-xs text-slate-400 uppercase mt-1">{user?.rol}</p>
                 </div>
                 <button
                   onClick={handleLogout}
